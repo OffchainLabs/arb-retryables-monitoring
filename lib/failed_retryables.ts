@@ -87,12 +87,6 @@ interface L2TicketReport {
   });
   const l1TXs: L1TicketReport[] = l1TXsResponse["retryables"];
 
-  // get token deposit data if Arbitrum token bridge issued the retryable
-  const depositsDataResponse = await querySubgraph(l1SubgraphEndpoint, GET_L1_DEPOSIT_DATA_QUERY, {
-    l2TicketIDs: ticketIDs,
-  });
-  const depositsData: TokenDepositData[] = depositsDataResponse["deposits"];
-
 
   for (let i = 0; i < failedTickets.length; i++) {
     const t = failedTickets[i];
