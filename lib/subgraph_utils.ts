@@ -1,9 +1,15 @@
 import { GraphQLClient } from "graphql-request";
 
+////// subgraph endpoints
+export const ARB_L1_RETRYABLES_SUBGRAPH_URL =
+  "https://api.thegraph.com/subgraphs/name/gvladika/arb-bridge-eth-nitro";
+export const ARB_L2_RETRYABLES_SUBGRAPH_URL =
+  "https://api.thegraph.com/subgraphs/name/gvladika/arbitrum-retryables";
+
 ////// subgraph queries
 export const FAILED_RETRYABLES_QUERY = `
 query($fromTimestamp: BigInt!) {
-  retryables(first: 200, where: {status_not: "Redeemed", createdAtTimestamp_gt: $fromTimestamp}, orderBy: createdAtTimestamp) {
+  retryables(first: 200, where: {status_not: Redeemed, createdAtTimestamp_gt: $fromTimestamp}, orderBy: createdAtTimestamp) {
     createdAtTxHash
   }
 }

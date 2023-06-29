@@ -5,6 +5,8 @@ import {
     querySubgraph,
     GET_L1_DEPOSIT_DATA_QUERY,
     getPastTimestamp,
+    ARB_L1_RETRYABLES_SUBGRAPH_URL,
+    ARB_L2_RETRYABLES_SUBGRAPH_URL,
   } from "./subgraph_utils";
 
 const l2ChainID = process.env["l2NetworkID"] as string;
@@ -58,12 +60,10 @@ interface L2TicketReport {
 
 
   const setChainParams = () => {
-    if (l2ChainID === "42161") {
-      l1SubgraphEndpoint = process.env["ARB_BRIDGE_SUBGRAPH_URL"] as string;
-      l2SubgraphEndpoint = process.env["ARB_RETRYABLES_SUBGRAPH_URL"] as string;
-    } else {
-      throw new Error("Wrong L2 chain ID, only 42161 is supported!");
-    }
+   
+      l1SubgraphEndpoint = ARB_L1_RETRYABLES_SUBGRAPH_URL;
+      l2SubgraphEndpoint = ARB_L2_RETRYABLES_SUBGRAPH_URL;
+   
   };
 
 
