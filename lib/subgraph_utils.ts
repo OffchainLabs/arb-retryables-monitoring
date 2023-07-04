@@ -1,4 +1,5 @@
 import { GraphQLClient } from "graphql-request";
+import { L1Retryables, L1TicketReport, L2TicketReport, TokenDepositData } from "./failed_retryables";
 
 ////// subgraph endpoints
 export const ARB_L1_RETRYABLES_SUBGRAPH_URL =
@@ -10,10 +11,27 @@ export const ARB_L2_RETRYABLES_SUBGRAPH_URL =
 export const FAILED_RETRYABLES_QUERY = `
 query($fromTimestamp: BigInt!) {
   retryables(first: 200, where: {status_not: Redeemed, createdAtTimestamp_gt: $fromTimestamp}, orderBy: createdAtTimestamp) {
+    id
+    retryTxHash
+    createdAtTimestamp
+    createdAtBlockNumber
+    timeoutTimestamp
+    deposit
+    status    
+    retryTo
+    retryData
+    gasFeeCap
+    gasLimit
     createdAtTxHash
   }
 }
 `;
+
+
+export interface FailedRetryableRes {
+  retryables: L2TicketReport[]
+}
+
 //query for creation
 export const GET_L1_TXS_QUERY = `
     query($l2TicketIDs: [String!]!) {
@@ -23,6 +41,12 @@ export const GET_L1_TXS_QUERY = `
       }
     }
 `;
+
+
+export interface L1TxsRes {
+  retryables: L1TicketReport[]
+}
+
 export const GET_L1_DEPOSIT_DATA_QUERY = `
     query($l2TicketIDs: [String!]!) {
       deposits(where: {l2TicketId_in: $l2TicketIDs}) {
@@ -37,6 +61,10 @@ export const GET_L1_DEPOSIT_DATA_QUERY = `
     }
 `;
 
+export interface L1DepositDataRes {
+  retryables: TokenDepositData[]
+}
+
 export const GET_L1_RETRYABLES_QUERY = `
     query($fromTimestamp: BigInt!, $toTimestamp: BigInt!, $lastID: String) {
         retryables(first: 200, where: {timestamp_gt: $fromTimestamp, timestamp_lt: $toTimestamp, id_gt: $lastID}) {
@@ -48,6 +76,12 @@ export const GET_L1_RETRYABLES_QUERY = `
         }
     }
 `;
+
+
+export interface L1RetryablesRes {
+  retryables: L1Retryables[]
+}
+
 export const GET_L2_RETRYABLES_BY_TICKET_ID_QUERY = `
     query($l2TicketIDs: [String!]!, $lastID: String) {
       retryables(first: 200, where: {id_in: $l2TicketIDs, id_gt: $lastID}) {
@@ -55,6 +89,14 @@ export const GET_L2_RETRYABLES_BY_TICKET_ID_QUERY = `
       }
     }
 `;
+
+export interface L2RetryablesId {
+  id: string
+}
+
+export interface L2RetryablesByTicketIdRes {
+  retryables: L2RetryablesId[]
+}
 
 export const querySubgraph = async (url: string, query: string, queryVars?: any) => {
   const graphClient = new GraphQLClient(url);
