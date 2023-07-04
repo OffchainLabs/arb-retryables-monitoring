@@ -1,6 +1,6 @@
 
 import {
-    FAILED_RETRYABLES_QUERY,
+    FAILED_AUTOREDEEM_RETRYABLES_QUERY,
     GET_L1_TXS_QUERY,
     querySubgraph,
     GET_L1_DEPOSIT_DATA_QUERY,
@@ -101,6 +101,7 @@ export interface L1Retryables {
 
   for (let i = 0; i < failedTickets.length; i++) {
     const t = failedTickets[i];
+    console.log(t)
     const l1Report = l1TXs.find((l1Ticket) => l1Ticket.transactionHash === t.id);
 
     // build message to report
@@ -112,8 +113,9 @@ export interface L1Retryables {
 };
 
   const getFailedTickets = async () => {
-    const queryResult: FailedRetryableRes = (await querySubgraph(l2SubgraphEndpoint, FAILED_RETRYABLES_QUERY, {
-      fromTimestamp: getPastTimestamp(STARTING_TIMESTAMP),
+    const queryResult: FailedRetryableRes = (await querySubgraph(l2SubgraphEndpoint, FAILED_AUTOREDEEM_RETRYABLES_QUERY, {
+      //fromTimestamp: getPastTimestamp(STARTING_TIMESTAMP),
+      fromTimestamp: 1685630881,
     })) as FailedRetryableRes;
     const failedTickets: L2TicketReport[] = queryResult["retryables"];
   
@@ -138,25 +140,13 @@ export interface L1Retryables {
   };
 
 
-  const checkFailedRetryablesLoop = async () => {
-    console.log(`Starting retryables checker for chainId: ${l2ChainID}`);
-  
+  export const checkFailedRetryablesLoop = async () => {
+    //console.log(`Starting retryables checker for chainId: ${l2ChainID}`);
+    setChainParams();
     while (true) {
       checkFailedRetryables();
       await wait(1000 * 60 * failedRetryablesDelayMinutes);
     }
   };
 
-
-  export const checkFailedRetryablesProcess = async () => {
-    setChainParams();
-  
-    checkFailedRetryablesLoop().catch(async (e: Error) => {
-      console.log(
-        `🔴 Error: ${e.stack} \n\n Retryables checker will start up again in ${failedRetryablesDelayMinutes} minutes 🔴 `
-      );
-  
-      setTimeout(checkFailedRetryablesProcess, 1000 * 60 * failedRetryablesDelayMinutes);
-    });
-  };
   

@@ -1,14 +1,14 @@
 
 import  argv  from './getClargs';
 const { action } = argv
-import { checkFailedRetryablesProcess } from './failed_retryables';
+import { checkFailedRetryablesLoop} from './failed_autoredeems';
 
 
 const main = async () => {
     // check action param
     switch (action) {
-        case "failed_retryables":
-            return checkFailedRetryablesProcess()
+        case "failed_autoredeems":
+            return checkFailedRetryablesLoop()
         default:
                 throw new Error("Not a right action value");
     }

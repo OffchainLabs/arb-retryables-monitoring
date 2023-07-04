@@ -1,5 +1,5 @@
 import { GraphQLClient } from "graphql-request";
-import { L1Retryables, L1TicketReport, L2TicketReport, TokenDepositData } from "./failed_retryables";
+import { L1Retryables, L1TicketReport, L2TicketReport, TokenDepositData } from "./failed_autoredeems";
 
 ////// subgraph endpoints
 export const ARB_L1_RETRYABLES_SUBGRAPH_URL =
@@ -8,9 +8,9 @@ export const ARB_L2_RETRYABLES_SUBGRAPH_URL =
   "https://api.thegraph.com/subgraphs/name/gvladika/arbitrum-retryables";
 
 ////// subgraph queries
-export const FAILED_RETRYABLES_QUERY = `
+export const FAILED_AUTOREDEEM_RETRYABLES_QUERY = `
 query($fromTimestamp: BigInt!) {
-  retryables(first: 200, where: {status_not: Redeemed, createdAtTimestamp_gt: $fromTimestamp}, orderBy: createdAtTimestamp) {
+  retryables(first: 20, where: {redeemedAtTimestamp: null, timeoutTimestamp_gt: $fromTimestamp}, orderBy: createdAtTimestamp, orderDirection: desc) {
     id
     retryTxHash
     createdAtTimestamp
