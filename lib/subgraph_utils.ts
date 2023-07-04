@@ -108,7 +108,6 @@ export const querySubgraph = async (url: string, query: string, queryVars?: any)
   while (retries < maxRetries) {
     try {
       const data = await graphClient.request(query, queryVars);
-      console.log(data)
       return data;
     } catch (err) {
       retries++;
