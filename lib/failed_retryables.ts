@@ -7,6 +7,8 @@ import {
     getPastTimestamp,
     ARB_L1_RETRYABLES_SUBGRAPH_URL,
     ARB_L2_RETRYABLES_SUBGRAPH_URL,
+    L1TxsRes,
+    FailedRetryableRes,
   } from "./subgraph_utils";
 
 const l2ChainID = process.env["l2NetworkID"] as string;
@@ -22,7 +24,7 @@ let l2SubgraphEndpoint: string;
 
 const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
 
-interface L2TicketReport {
+export interface L2TicketReport {
     id: string; //the L1 submission tx
     retryTxHash: string;
     createdAtTimestamp: string;
@@ -35,23 +37,32 @@ interface L2TicketReport {
     gasFeeCap: number;
     gasLimit: number;
     createdAtTxHash:string;
-  }
+}
+
   
-  interface L1TicketReport {
-    transactionHash: string;
-    sender: string;
-  }
+export interface L1TicketReport {
+  transactionHash: string;
+  sender: string;
+}
   
-  interface TokenDepositData {
-    l2TicketId: string;
-    tokenAmount: string;
-    sender: string;
-    l1Token: {
-      symbol: string;
-      id: string;
-      decimals: number;
-    };
-  }
+export interface TokenDepositData {
+  l2TicketId: string;
+  tokenAmount: string;
+  sender: string;
+  l1Token: {
+    symbol: string;
+    id: string;
+    decimals: number;
+  };
+}
+
+export interface L1Retryables {
+  id: string
+  retryableTicketID: string
+  timestamp: string
+  transactionHash: string
+  destAddr: string
+}
 
   const isExpired = (ticket: L2TicketReport) => {
     const now = Math.floor(new Date().getTime() / 1000); // epoch in seconds
@@ -82,10 +93,10 @@ interface L2TicketReport {
   const ticketIDs: string[] = failedTickets.map((t) => t.createdAtTxHash);
 
   // get matching L1 TXs from L1 subgraph
-  const l1TXsResponse = await querySubgraph(l1SubgraphEndpoint, GET_L1_TXS_QUERY, {
+  const l1TXsResponse: L1TxsRes = (await querySubgraph(l1SubgraphEndpoint, GET_L1_TXS_QUERY, {
     l2TicketIDs: ticketIDs,
-  });
-  const l1TXs: L1TicketReport[] = l1TXsResponse["retryables"];
+  })) as L1TxsRes;
+  const l1TXs: L1TicketReport[] = l1TXsResponse["retryables"]!;
 
 
   for (let i = 0; i < failedTickets.length; i++) {
@@ -101,9 +112,9 @@ interface L2TicketReport {
 };
 
   const getFailedTickets = async () => {
-    const queryResult = await querySubgraph(l2SubgraphEndpoint, FAILED_RETRYABLES_QUERY, {
+    const queryResult: FailedRetryableRes = (await querySubgraph(l2SubgraphEndpoint, FAILED_RETRYABLES_QUERY, {
       fromTimestamp: getPastTimestamp(STARTING_TIMESTAMP),
-    });
+    })) as FailedRetryableRes;
     const failedTickets: L2TicketReport[] = queryResult["retryables"];
   
     // subgraph doesn't know about expired tickets, so check and update status here
