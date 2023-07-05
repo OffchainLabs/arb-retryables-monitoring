@@ -11,11 +11,10 @@ import {
     FailedRetryableRes,
     L1DepositDataRes
   } from "./subgraph_utils";
+  
+  require('dotenv').config()
 
-import { L1_CONTRACT_TO_PROTOCOL, L2_CONTRACT_TO_PROTOCOL } from "./constants";
-
-
-const l2ChainID = process.env["l2NetworkID"] as string;
+const l2ChainID = process.env.l2NetworkID
 const failedRetryablesDelayMinutes = +(process.env.FAILED_RETRYABLES_DELAY_MINUTES || 1440); //1 day
 
 
@@ -25,11 +24,6 @@ const ETHERSCAN_ADDRESS = "https://etherscan.io/address/";
 
 let l1SubgraphEndpoint: string;
 let l2SubgraphEndpoint: string;
-
-enum Chain {
-  ARBITRUM = "arbiscan",
-  ETHEREUM = "etherscan",
-}
 
 
 const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
@@ -83,10 +77,12 @@ export interface L1Retryables {
 
 
   const setChainParams = () => {
-   
+    if (l2ChainID === "42161") {
       l1SubgraphEndpoint = ARB_L1_RETRYABLES_SUBGRAPH_URL;
       l2SubgraphEndpoint = ARB_L2_RETRYABLES_SUBGRAPH_URL;
-   
+    } else {
+      throw new Error("Wrong L2 chain ID, only 42161 is supported");
+    }
   };
 
 
@@ -187,7 +183,7 @@ export interface L1Retryables {
 
 
   export const checkFailedRetryablesLoop = async () => {
-    //console.log(`Starting retryables checker for chainId: ${l2ChainID}`);
+    console.log(`Starting retryables checker for chainId: ${l2ChainID}`);
     setChainParams();
     while (true) {
       checkFailedRetryables();
