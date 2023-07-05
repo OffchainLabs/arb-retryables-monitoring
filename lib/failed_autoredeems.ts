@@ -121,14 +121,14 @@ export interface L1Retryables {
   // get matching L1 TXs from L1 subgraph
   const l1TXsResponse: L1TxsRes = (await querySubgraph(l1SubgraphEndpoint, GET_L1_TXS_QUERY, {
     l2TicketIDs: ticketIDs,
-    ticketSender: "0xd151c9ef49ce2d30b829a98a07767e3280f70961"
+    ticketSender: process.env.FROM_CONTRACT_ADDRESS
   })) as L1TxsRes;
   const l1TXs: L1TicketReport[] = l1TXsResponse["retryables"]!;
 
   // get token deposit data if Arbitrum token bridge issued the retryable
   const depositsDataResponse : L1DepositDataRes = (await querySubgraph(l1SubgraphEndpoint, GET_L1_DEPOSIT_DATA_QUERY, {
     l2TicketIDs: ticketIDs,
-    ticketSender: "0xd151c9ef49ce2d30b829a98a07767e3280f70961"
+    ticketSender: process.env.FROM_CONTRACT_ADDRESS
   })) as L1DepositDataRes;
   const depositsData: TokenDepositData[] = depositsDataResponse["deposits"];
 
