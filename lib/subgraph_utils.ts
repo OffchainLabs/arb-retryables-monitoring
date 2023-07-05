@@ -10,7 +10,7 @@ export const ARB_L2_RETRYABLES_SUBGRAPH_URL =
 ////// subgraph queries
 export const FAILED_AUTOREDEEM_RETRYABLES_QUERY = `
 query($fromTimestamp: BigInt!) {
-  retryables(first: 20, where: {redeemedAtTimestamp: null, timeoutTimestamp_gt: $fromTimestamp}, orderBy: createdAtTimestamp, orderDirection: desc) {
+  retryables(where: {redeemedAtTimestamp: null, timeoutTimestamp_gt: $fromTimestamp}) {
     id
     retryTxHash
     createdAtTimestamp
@@ -34,8 +34,8 @@ export interface FailedRetryableRes {
 
 //query for creation
 export const GET_L1_TXS_QUERY = `
-    query($l2TicketIDs: [String!]!) {
-      retryables(where: {retryableTicketID_in: $l2TicketIDs}) {
+    query($l2TicketIDs: [String!]!, $ticketSender: String) {
+      retryables(where: {retryableTicketID_in: $l2TicketIDs, sender: $ticketSender}) {
         transactionHash
         sender
       }
@@ -48,8 +48,8 @@ export interface L1TxsRes {
 }
 
 export const GET_L1_DEPOSIT_DATA_QUERY = `
-    query($l2TicketIDs: [String!]!) {
-      deposits(where: {l2TicketId_in: $l2TicketIDs}) {
+    query($l2TicketIDs: [String!]!, $ticketSender: String) {
+      deposits(where: {l2TicketId_in: $l2TicketIDs, sender: $ticketSender }) {
         tokenAmount
         sender
         l1Token {
@@ -62,7 +62,7 @@ export const GET_L1_DEPOSIT_DATA_QUERY = `
 `;
 
 export interface L1DepositDataRes {
-  retryables: TokenDepositData[]
+  deposits: TokenDepositData[]
 }
 
 export const GET_L1_RETRYABLES_QUERY = `

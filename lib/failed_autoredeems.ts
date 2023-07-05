@@ -9,7 +9,11 @@ import {
     ARB_L2_RETRYABLES_SUBGRAPH_URL,
     L1TxsRes,
     FailedRetryableRes,
+    L1DepositDataRes
   } from "./subgraph_utils";
+
+import { L1_CONTRACT_TO_PROTOCOL, L2_CONTRACT_TO_PROTOCOL } from "./constants";
+
 
 const l2ChainID = process.env["l2NetworkID"] as string;
 const failedRetryablesDelayMinutes = +(process.env.FAILED_RETRYABLES_DELAY_MINUTES || 1440); //1 day
@@ -17,9 +21,15 @@ const failedRetryablesDelayMinutes = +(process.env.FAILED_RETRYABLES_DELAY_MINUT
 
 const STARTING_TIMESTAMP = 14 * 24 * 60 * 60 * 1000; // 14 days in ms
 const ETHERSCAN_TX = "https://etherscan.io/tx/";
+const ETHERSCAN_ADDRESS = "https://etherscan.io/address/";
 
 let l1SubgraphEndpoint: string;
 let l2SubgraphEndpoint: string;
+
+enum Chain {
+  ARBITRUM = "arbiscan",
+  ETHEREUM = "etherscan",
+}
 
 
 const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
@@ -40,8 +50,10 @@ export interface L2TicketReport {
 }
   
 export interface L1TicketReport {
+  id: string;
   transactionHash: string;
   sender: string;
+  retryableTicketID: string;
 }
   
 export interface TokenDepositData {
@@ -61,6 +73,7 @@ export interface L1Retryables {
   timestamp: string
   transactionHash: string
   destAddr: string
+  sender: string
 }
 
   const isExpired = (ticket: L2TicketReport) => {
@@ -87,6 +100,24 @@ export interface L1Retryables {
     return `${msg}<${ETHERSCAN_TX + l1Report.transactionHash}>`;
   };
 
+  const formatInitiator = (
+    deposit: TokenDepositData | undefined,
+    l1Report: L1TicketReport | undefined
+  ) => {
+    if (deposit !== undefined) {
+      let msg = "\n\t *Deposit initiated by:* ";
+      return `${msg}<${ETHERSCAN_ADDRESS + deposit.sender}>`;
+    }
+  
+    if (l1Report !== undefined) {
+      let msg = "\n\t *Retryable sender:* ";
+      return `${msg}<${ETHERSCAN_ADDRESS + l1Report.sender}>`;
+    }
+  
+    return "";
+  };
+
+
 
   const reportFailedTickets = async (failedTickets: L2TicketReport[]) => {
   const ticketIDs: string[] = failedTickets.map((t) => t.createdAtTxHash);
@@ -94,27 +125,43 @@ export interface L1Retryables {
   // get matching L1 TXs from L1 subgraph
   const l1TXsResponse: L1TxsRes = (await querySubgraph(l1SubgraphEndpoint, GET_L1_TXS_QUERY, {
     l2TicketIDs: ticketIDs,
+    ticketSender: "0xd151c9ef49ce2d30b829a98a07767e3280f70961"
   })) as L1TxsRes;
   const l1TXs: L1TicketReport[] = l1TXsResponse["retryables"]!;
+
+  // get token deposit data if Arbitrum token bridge issued the retryable
+  const depositsDataResponse : L1DepositDataRes = (await querySubgraph(l1SubgraphEndpoint, GET_L1_DEPOSIT_DATA_QUERY, {
+    l2TicketIDs: ticketIDs,
+    ticketSender: "0xd151c9ef49ce2d30b829a98a07767e3280f70961"
+  })) as L1DepositDataRes;
+  const depositsData: TokenDepositData[] = depositsDataResponse["deposits"];
 
 
   for (let i = 0; i < failedTickets.length; i++) {
     const t = failedTickets[i];
-    console.log(t)
-    const l1Report = l1TXs.find((l1Ticket) => l1Ticket.transactionHash);
+    //console.log(t)
+    const l1Report = l1TXs[i]
+    const tokenDepositData = depositsData[i];
 
+  
+    if (l1Report !== undefined){
+
+      let reportStr = 
+      formatL1TX(l1Report) +
+      formatInitiator(tokenDepositData, l1Report) +
+      "\n=================================================================";
+      console.log(reportStr);
+      console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    }
     // build message to report
-    let reportStr = formatL1TX(l1Report) +
-    "\n=================================================================";
-
-    console.log(reportStr);
+    
   }
 };
 
   const getFailedTickets = async () => {
     const queryResult: FailedRetryableRes = (await querySubgraph(l2SubgraphEndpoint, FAILED_AUTOREDEEM_RETRYABLES_QUERY, {
       //fromTimestamp: getPastTimestamp(STARTING_TIMESTAMP),
-      fromTimestamp: 1685630881,
+      fromTimestamp: 1680373169,
     })) as FailedRetryableRes;
     const failedTickets: L2TicketReport[] = queryResult["retryables"];
   
