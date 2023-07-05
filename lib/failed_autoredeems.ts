@@ -25,7 +25,7 @@ let l2SubgraphEndpoint: string;
 const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export interface L2TicketReport {
-    id: string; //the L1 submission tx
+    id: string; 
     retryTxHash: string;
     createdAtTimestamp: string;
     createdAtBlockNumber: number;
@@ -38,7 +38,6 @@ export interface L2TicketReport {
     gasLimit: number;
     createdAtTxHash:string;
 }
-
   
 export interface L1TicketReport {
   transactionHash: string;
@@ -85,7 +84,7 @@ export interface L1Retryables {
       return msg + "-";
     }
   
-    return `${msg}<${ETHERSCAN_TX + l1Report.transactionHash}|${l1Report.transactionHash}>`;
+    return `${msg}<${ETHERSCAN_TX + l1Report.transactionHash}>`;
   };
 
 
@@ -102,7 +101,7 @@ export interface L1Retryables {
   for (let i = 0; i < failedTickets.length; i++) {
     const t = failedTickets[i];
     console.log(t)
-    const l1Report = l1TXs.find((l1Ticket) => l1Ticket.transactionHash === t.id);
+    const l1Report = l1TXs.find((l1Ticket) => l1Ticket.transactionHash);
 
     // build message to report
     let reportStr = formatL1TX(l1Report) +
