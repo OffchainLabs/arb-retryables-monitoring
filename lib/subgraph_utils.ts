@@ -34,10 +34,11 @@ export interface FailedRetryableRes {
 
 //query for creation
 export const GET_L1_TXS_QUERY = `
-    query($l2TicketIDs: [String!]!, $ticketSender: String) {
-      retryables(where: {retryableTicketID_in: $l2TicketIDs, sender: $ticketSender}) {
+    query($l2TicketIDs: [String!]!) {
+      retryables(where: {retryableTicketID_in: $l2TicketIDs}) {
         transactionHash
         sender
+        retryableTicketID
       }
     }
 `;
@@ -50,6 +51,7 @@ export interface L1TxsRes {
 export const GET_L1_DEPOSIT_DATA_QUERY = `
     query($l2TicketIDs: [String!]!) {
       deposits(where: {l2TicketId_in: $l2TicketIDs}) {
+        l2TicketId
         transactionHash
         tokenAmount
         sender

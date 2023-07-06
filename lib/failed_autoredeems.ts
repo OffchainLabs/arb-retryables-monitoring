@@ -16,6 +16,7 @@ import {
     L1TransactionReceipt
   } from "@arbitrum/sdk";
   import { providers } from "ethers";
+  import { TransactionReceipt } from '@ethersproject/providers'
   require('dotenv').config()
 
 const l2ChainID = process.env.l2NetworkID
@@ -91,26 +92,35 @@ export interface L1Retryables {
   };
 
 
+  const getL1TXRec = async (txHash: string): Promise<TransactionReceipt>  => {
+    const receipt = await l1Provider.getTransactionReceipt(txHash);
+    return receipt;
+    
+  };
+
   const formatL1TX = (l1Report: L1TicketReport | undefined) => {
     let msg = "\n\t *L1 TX:* ";
   
     if (l1Report == undefined) {
       return msg + "-";
     }
-  
-    return `${msg}<${ETHERSCAN_TX + l1Report.transactionHash}>`;
+    return `${msg}<${ETHERSCAN_TX + l1Report.transactionHash}`;
   };
 
-  const formatInitiator = async ( deposit: TokenDepositData | undefined, l1Report: L1TicketReport | undefined) => {
+  const formatInitiator = async ( deposit: TokenDepositData | undefined, l1Report: L1TicketReport | undefined): Promise<string> => {
+   
     if (deposit !== undefined) {
-      const rec = await l1Provider.getTransactionReceipt(deposit.transactionHash)
+
+      const rec = await getL1TXRec(deposit.transactionHash);
       let msg = "\n\t *Deposit initiated by:* ";
+  
       return `${msg}<${ETHERSCAN_ADDRESS + rec.from}>`;
     }
   
     if (l1Report !== undefined) {
+      const rec = await getL1TXRec(l1Report.transactionHash);
       let msg = "\n\t *Retryable sender:* ";
-      return `${msg}<${ETHERSCAN_ADDRESS + l1Report.sender}>`;
+      return `${msg}<${ETHERSCAN_ADDRESS + rec.from}>`;
     }
   
     return "";
@@ -124,7 +134,7 @@ export interface L1Retryables {
   // get matching L1 TXs from L1 subgraph
   const l1TXsResponse: L1TxsRes = (await querySubgraph(l1SubgraphEndpoint, GET_L1_TXS_QUERY, {
     l2TicketIDs: ticketIDs,
-    ticketSender: process.env.FROM_CONTRACT_ADDRESS
+    //ticketSender: process.env.FROM_CONTRACT_ADDRESS
   })) as L1TxsRes;
   const l1TXs: L1TicketReport[] = l1TXsResponse["retryables"]!;
 
@@ -134,24 +144,26 @@ export interface L1Retryables {
   })) as L1DepositDataRes;
   const depositsData: TokenDepositData[] = depositsDataResponse["deposits"];
 
-
   for (let i = 0; i < failedTickets.length; i++) {
+    const t = failedTickets[i];
     
-    const l1Report = l1TXs[i]
-    const tokenDepositData = depositsData[i];
+    //console.log(t.createdAtTxHash)
 
-  
-    if (l1Report !== undefined){
+    
+    const l1Report = l1TXs.find((l1Ticket) => l1Ticket.retryableTicketID === t.createdAtTxHash);
+   const tokenDepositData = depositsData.find((deposit) => deposit.l2TicketId === t.id);
+    
+   let reportStr =
+   
+   await formatInitiator(tokenDepositData, l1Report) +
 
-      let reportStr = 
-      formatL1TX(l1Report) +
-      formatInitiator(tokenDepositData, l1Report) +
-      "\n=================================================================";
-      console.log(reportStr);
+   formatL1TX(l1Report) 
+    //console.log(tokenDepositData)
+    // let reportStr = 
+    //   formatL1TX(l1Report) +
+    //   (await formatInitiator(tokenDepositData, l1Report))
+    console.log(reportStr);
       console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    
-    }
-    
   }
 };
 
