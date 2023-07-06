@@ -11,12 +11,16 @@ import {
     FailedRetryableRes,
     L1DepositDataRes
   } from "./subgraph_utils";
-  
+  import{
+    getL1Network,
+    L1TransactionReceipt
+  } from "@arbitrum/sdk";
+  import { providers } from "ethers";
   require('dotenv').config()
 
 const l2ChainID = process.env.l2NetworkID
 const failedRetryablesDelayMinutes = +(process.env.FAILED_RETRYABLES_DELAY_MINUTES || 1440); //1 day
-
+const l1Provider = new providers.JsonRpcProvider(process.env.L1RPC)
 
 const STARTING_TIMESTAMP = 14 * 24 * 60 * 60 * 1000; // 14 days in ms
 const ETHERSCAN_TX = "https://etherscan.io/tx/";
@@ -59,6 +63,7 @@ export interface TokenDepositData {
     id: string;
     decimals: number;
   };
+  transactionHash: string;
 }
 
 export interface L1Retryables {
@@ -96,13 +101,11 @@ export interface L1Retryables {
     return `${msg}<${ETHERSCAN_TX + l1Report.transactionHash}>`;
   };
 
-  const formatInitiator = (
-    deposit: TokenDepositData | undefined,
-    l1Report: L1TicketReport | undefined
-  ) => {
+  const formatInitiator = async ( deposit: TokenDepositData | undefined, l1Report: L1TicketReport | undefined) => {
     if (deposit !== undefined) {
+      const rec = await l1Provider.getTransactionReceipt(deposit.transactionHash)
       let msg = "\n\t *Deposit initiated by:* ";
-      return `${msg}<${ETHERSCAN_ADDRESS + deposit.sender}>`;
+      return `${msg}<${ETHERSCAN_ADDRESS + rec.from}>`;
     }
   
     if (l1Report !== undefined) {
@@ -127,15 +130,13 @@ export interface L1Retryables {
 
   // get token deposit data if Arbitrum token bridge issued the retryable
   const depositsDataResponse : L1DepositDataRes = (await querySubgraph(l1SubgraphEndpoint, GET_L1_DEPOSIT_DATA_QUERY, {
-    l2TicketIDs: ticketIDs,
-    ticketSender: process.env.FROM_CONTRACT_ADDRESS
+    l2TicketIDs: ticketIDs
   })) as L1DepositDataRes;
   const depositsData: TokenDepositData[] = depositsDataResponse["deposits"];
 
 
   for (let i = 0; i < failedTickets.length; i++) {
-    const t = failedTickets[i];
-    //console.log(t)
+    
     const l1Report = l1TXs[i]
     const tokenDepositData = depositsData[i];
 
@@ -148,8 +149,8 @@ export interface L1Retryables {
       "\n=================================================================";
       console.log(reportStr);
       console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    
     }
-    // build message to report
     
   }
 };

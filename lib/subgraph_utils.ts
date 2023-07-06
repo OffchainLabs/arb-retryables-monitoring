@@ -48,8 +48,9 @@ export interface L1TxsRes {
 }
 
 export const GET_L1_DEPOSIT_DATA_QUERY = `
-    query($l2TicketIDs: [String!]!, $ticketSender: String) {
-      deposits(where: {l2TicketId_in: $l2TicketIDs, sender: $ticketSender }) {
+    query($l2TicketIDs: [String!]!) {
+      deposits(where: {l2TicketId_in: $l2TicketIDs}) {
+        transactionHash
         tokenAmount
         sender
         l1Token {
