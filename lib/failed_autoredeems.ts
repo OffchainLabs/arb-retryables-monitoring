@@ -17,7 +17,9 @@ import {
   } from "@arbitrum/sdk";
   import { providers } from "ethers";
   import { TransactionReceipt } from '@ethersproject/providers'
+  
   require('dotenv').config()
+  
 
 const l2ChainID = process.env.l2NetworkID
 const failedRetryablesDelayMinutes = +(process.env.FAILED_RETRYABLES_DELAY_MINUTES || 1440); //1 day
@@ -25,8 +27,10 @@ const l1Provider = new providers.JsonRpcProvider(process.env.L1RPC)
 
 const STARTING_TIMESTAMP = 14 * 24 * 60 * 60 * 1000; // 14 days in ms
 const ETHERSCAN_TX = "https://etherscan.io/tx/";
+const RETRYABLE_DASHBOARD = "https://retryable-dashboard.arbitrum.io/tx";
 const ETHERSCAN_ADDRESS = "https://etherscan.io/address/";
-
+const failedRetryables = []
+const failedDeposits = []
 let l1SubgraphEndpoint: string;
 let l2SubgraphEndpoint: string;
 
@@ -98,13 +102,16 @@ export interface L1Retryables {
     
   };
 
-  const formatL1TX = (l1Report: L1TicketReport | undefined) => {
-    let msg = "\n\t *L1 TX:* ";
+  const formatL1TX = (l1Report: L1TicketReport | undefined)  => {
+    
   
     if (l1Report == undefined) {
-      return msg + "-";
+      return "-";
     }
-    return `${msg}<${ETHERSCAN_TX + l1Report.transactionHash}`;
+    let msg = "\n*L1 TX is:* ";
+    return `${msg}<${ETHERSCAN_TX + l1Report.transactionHash}\nPlease visit ${RETRYABLE_DASHBOARD+l1Report.transactionHash} to manually redeem the ticket!`;
+   
+
   };
 
   const formatInitiator = async ( deposit: TokenDepositData | undefined, l1Report: L1TicketReport | undefined): Promise<string> => {
@@ -112,15 +119,31 @@ export interface L1Retryables {
     if (deposit !== undefined) {
 
       const rec = await getL1TXRec(deposit.transactionHash);
-      let msg = "\n\t *Deposit initiated by:* ";
-  
-      return `${msg}<${ETHERSCAN_ADDRESS + rec.from}>`;
+     //let msg = "\n\t *Deposit initiated by:* ";
+      //return `${msg}<${ETHERSCAN_ADDRESS + rec.from}>`;
+      if (rec.from === process.env.FROM_CONTRACT_ADDRESS)
+      {
+        return rec.from;
+      }
+      else{
+        return "";
+      }
     }
+
   
     if (l1Report !== undefined) {
       const rec = await getL1TXRec(l1Report.transactionHash);
-      let msg = "\n\t *Retryable sender:* ";
-      return `${msg}<${ETHERSCAN_ADDRESS + rec.from}>`;
+      //let msg = "\n\t *Retryable sender:* ";
+      //return `${msg}<${ETHERSCAN_ADDRESS + rec.from}>`;
+     
+      if(rec.from === process.env.FROM_CONTRACT_ADDRESS)
+      {
+        return rec.from;
+      }
+      else{
+        return "";
+      }
+   
     }
   
     return "";
@@ -146,24 +169,20 @@ export interface L1Retryables {
 
   for (let i = 0; i < failedTickets.length; i++) {
     const t = failedTickets[i];
-    
-    //console.log(t.createdAtTxHash)
+  
 
     
     const l1Report = l1TXs.find((l1Ticket) => l1Ticket.retryableTicketID === t.createdAtTxHash);
-   const tokenDepositData = depositsData.find((deposit) => deposit.l2TicketId === t.id);
+    const tokenDepositData = depositsData.find((deposit) => deposit.l2TicketId === t.id);
     
-   let reportStr =
-   
-   await formatInitiator(tokenDepositData, l1Report) +
+    
 
-   formatL1TX(l1Report) 
-    //console.log(tokenDepositData)
-    // let reportStr = 
-    //   formatL1TX(l1Report) +
-    //   (await formatInitiator(tokenDepositData, l1Report))
-    console.log(reportStr);
+    if (await formatInitiator(tokenDepositData, l1Report) !==""){
+      let reportStr = formatL1TX(l1Report);
+      console.log(reportStr);
       console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    }
+    
   }
 };
 
