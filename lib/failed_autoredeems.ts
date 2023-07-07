@@ -193,9 +193,26 @@ export interface L1Retryables {
     
   
     if (await formatInitiator(tokenDepositData, l1Report) !==""){
-     
       let reportStr = formatL1TX(l1Report);
-      console.log(reportStr);
+      let prefix;
+      switch (t.status) {
+      case "RedeemFailed":
+        prefix = "*Redeem failed for the ticket!*\n";
+        console.log(prefix + reportStr + `\nPlease visit ${RETRYABLE_DASHBOARD} to manually redeem the ticket!`);
+        break;
+      case "Expired":
+        prefix = "*Retryable ticket expired!* 😞";
+        console.log(prefix + reportStr);
+        break;
+      case "Created":
+        prefix = "*Retryable ticket hasn't been scheduled:*";
+        console.log(prefix + reportStr + `\nPlease visit ${RETRYABLE_DASHBOARD} to manually redeem the ticket!`);
+        break;
+      default:
+        prefix = "*Found retryable ticket in unrecognized state:*";
+    }
+     
+      
       console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     }
     
