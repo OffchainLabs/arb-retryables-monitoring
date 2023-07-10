@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-'use strict';
-import yargs from 'yargs/yargs';
+'use strict'
+import yargs from 'yargs/yargs'
 
 const argv = yargs(process.argv.slice(2))
   .options({
@@ -24,10 +24,10 @@ const argv = yargs(process.argv.slice(2))
     },
     oneOff: {
       type: 'boolean',
-      default: false
-    }
+      default: false,
+    },
   })
   .demandOption('action')
-  .parseSync();
-  
-export default argv;
+  .parseSync()
+
+export default argv

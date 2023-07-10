@@ -1,11 +1,16 @@
-import { GraphQLClient } from "graphql-request";
-import { L1Retryables, L1TicketReport, L2TicketReport, TokenDepositData } from "./failed_autoredeems";
+import { GraphQLClient } from 'graphql-request'
+import {
+  L1Retryables,
+  L1TicketReport,
+  L2TicketReport,
+  TokenDepositData,
+} from './failed_autoredeems'
 
 ////// subgraph endpoints
 export const ARB_L1_RETRYABLES_SUBGRAPH_URL =
-  "https://api.thegraph.com/subgraphs/name/gvladika/arb-bridge-eth-nitro";
+  'https://api.thegraph.com/subgraphs/name/gvladika/arb-bridge-eth-nitro'
 export const ARB_L2_RETRYABLES_SUBGRAPH_URL =
-  "https://api.thegraph.com/subgraphs/name/gvladika/arbitrum-retryables";
+  'https://api.thegraph.com/subgraphs/name/gvladika/arbitrum-retryables'
 
 ////// subgraph queries
 export const FAILED_AUTOREDEEM_RETRYABLES_QUERY = `
@@ -25,8 +30,7 @@ query($fromTimestamp: BigInt!) {
     createdAtTxHash
   }
 }
-`;
-
+`
 
 export interface FailedRetryableRes {
   retryables: L2TicketReport[]
@@ -41,8 +45,7 @@ export const GET_L1_TXS_QUERY = `
         retryableTicketID
       }
     }
-`;
-
+`
 
 export interface L1TxsRes {
   retryables: L1TicketReport[]
@@ -62,7 +65,7 @@ export const GET_L1_DEPOSIT_DATA_QUERY = `
         }
       }
     }
-`;
+`
 
 export interface L1DepositDataRes {
   deposits: TokenDepositData[]
@@ -78,8 +81,7 @@ export const GET_L1_RETRYABLES_QUERY = `
           destAddr
         }
     }
-`;
-
+`
 
 export interface L1RetryablesRes {
   retryables: L1Retryables[]
@@ -91,7 +93,7 @@ export const GET_L2_RETRYABLES_BY_TICKET_ID_QUERY = `
         id
       }
     }
-`;
+`
 
 export interface L2RetryablesId {
   id: string
@@ -101,41 +103,49 @@ export interface L2RetryablesByTicketIdRes {
   retryables: L2RetryablesId[]
 }
 
-export const querySubgraph = async (url: string, query: string, queryVars?: any) => {
-  const graphClient = new GraphQLClient(url);
+export const querySubgraph = async (
+  url: string,
+  query: string,
+  queryVars?: any
+) => {
+  const graphClient = new GraphQLClient(url)
 
-  let retries = 0;
-  const maxRetries = 200;
-  const retryInterval = 30000; // 30 sec
+  let retries = 0
+  const maxRetries = 200
+  const retryInterval = 30000 // 30 sec
 
   while (retries < maxRetries) {
     try {
-      const data = await graphClient.request(query, queryVars);
-      return data;
+      const data = await graphClient.request(query, queryVars)
+      return data
     } catch (err) {
-      retries++;
+      retries++
       if (retries === maxRetries) {
-        console.warn(`Failed to query subgraph ${url}`);
-        throw err;
+        console.warn(`Failed to query subgraph ${url}`)
+        throw err
       } else {
-        console.warn(`Subgraph query failed, retrying in ${retryInterval / 1000} seconds...`);
-        await wait(retryInterval);
+        console.warn(
+          `Subgraph query failed, retrying in ${
+            retryInterval / 1000
+          } seconds...`
+        )
+        await wait(retryInterval)
       }
     }
   }
-console.log("no")
-  return {};
-};
+  console.log('no')
+  return {}
+}
 
-export const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export const wait = (ms: number) => new Promise(r => setTimeout(r, ms))
 
 // Unix timestamp
 export const getPastTimestamp = (daysAgoInMs: number) => {
-  const now = new Date().getTime();
-  return Math.floor((now - daysAgoInMs) / 1000);
-};
+  const now = new Date().getTime()
+  return Math.floor((now - daysAgoInMs) / 1000)
+}
 
 export const timestampToDate = (timestampInSeconds: number) => {
-  const date = new Date(timestampInSeconds * 1000);
-  return date.toUTCString();
-};
+  const date = new Date(timestampInSeconds * 1000)
+  return date.toUTCString()
+}
