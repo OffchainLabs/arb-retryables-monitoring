@@ -11,10 +11,6 @@ import {
     FailedRetryableRes,
     L1DepositDataRes
   } from "./subgraph_utils";
-  import{
-    getL1Network,
-    L1TransactionReceipt
-  } from "@arbitrum/sdk";
   import { providers } from "ethers";
   import { TransactionReceipt } from '@ethersproject/providers'
   
@@ -22,15 +18,12 @@ import {
   
 
 const l2ChainID = process.env.l2NetworkID
-const failedRetryablesDelayMinutes = +(process.env.FAILED_RETRYABLES_DELAY_MINUTES || 1440); //1 day
 const l1Provider = new providers.JsonRpcProvider(process.env.L1RPC)
 
-const STARTING_TIMESTAMP = 14 * 24 * 60 * 60 * 1000; // 14 days in ms
+const STARTING_TIMESTAMP = 100 * 24 * 60 * 60 * 1000; // 14 days in ms
 const ETHERSCAN_TX = "https://etherscan.io/tx/";
 const RETRYABLE_DASHBOARD = "https://retryable-dashboard.arbitrum.io/tx/";
 const ETHERSCAN_ADDRESS = "https://etherscan.io/address/";
-const failedRetryables = []
-const failedDeposits = []
 let l1SubgraphEndpoint: string;
 let l2SubgraphEndpoint: string;
 
@@ -79,6 +72,27 @@ export interface L1Retryables {
   destAddr: string
   sender: string
 }
+
+
+const getTimeDifference = (timestampInSeconds: number) => {
+  const now = new Date().getTime() / 1000;
+  const difference = timestampInSeconds - now;
+
+  const days = Math.floor(difference / (24 * 60 * 60));
+  const hours = Math.floor((difference % (24 * 60 * 60)) / (60 * 60));
+  const minutes = Math.floor((difference % (60 * 60)) / 60);
+  const seconds = Math.floor(difference % 60);
+
+  if (days > 0) {
+    return `${days}days : ${hours}h : ${minutes}min : ${seconds}s`;
+  } else if (hours > 0) {
+    return `${hours}h : ${minutes}min : ${seconds}s`;
+  } else if (minutes > 0) {
+    return `${minutes}min : ${seconds}s`;
+  } else {
+    return `${seconds}s`;
+  }
+};
 
   const isExpired = (ticket: L2TicketReport) => {
     const now = Math.floor(new Date().getTime() / 1000); // epoch in seconds
@@ -142,29 +156,6 @@ export interface L1Retryables {
     return "";
   };
 
-
-  const formatPrefix = (ticket: L2TicketReport) => {
-    //const now = Math.floor(new Date().getTime() / 1000); // now in s
-  
-    let prefix;
-    switch (ticket.status) {
-      case "RedeemFailed":
-        prefix = "*Redeem failed for ticket:*";
-        break;
-      case "Expired":
-        prefix = "*Retryable ticket expired:*";
-        break;
-      case "Created":
-        prefix = "*Retryable ticket hasn't been scheduled:*";
-        break;
-      default:
-        prefix = "*Found retryable ticket in unrecognized state:*";
-    }
-
-    return prefix;
-  };
-  
-
   const reportFailedTickets = async (failedTickets: L2TicketReport[]) => {
   const ticketIDs: string[] = failedTickets.map((t) => t.createdAtTxHash);
 
@@ -197,15 +188,16 @@ export interface L1Retryables {
       let prefix;
       switch (t.status) {
       case "RedeemFailed":
-        prefix = "*Redeem failed for the ticket!*\n";
-        console.log(prefix + reportStr + `\nPlease visit ${RETRYABLE_DASHBOARD} to manually redeem the ticket!`);
+        prefix = "Redeem failed for the ticket!\n It will expire in";
+        console.log(prefix + `${getTimeDifference(+t.timeoutTimestamp)}`+ reportStr + `\nPlease visit ${RETRYABLE_DASHBOARD} to manually redeem the ticket!`);
+        
         break;
       case "Expired":
-        prefix = "*Retryable ticket expired!* 😞";
+        prefix = "*Retryable ticket already expired!* 😞";
         console.log(prefix + reportStr);
         break;
       case "Created":
-        prefix = "*Retryable ticket hasn't been scheduled:*";
+        prefix = "*Retryable ticket hasn't been scheduled!*";
         console.log(prefix + reportStr + `\nPlease visit ${RETRYABLE_DASHBOARD} to manually redeem the ticket!`);
         break;
       default:
@@ -213,16 +205,18 @@ export interface L1Retryables {
     }
      
       
-      console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+      console.log("-------------------------------------------------------------------------------")
     }
     
   }
+  console.log("No other ticket is found!");
+  
 };
 
   const getFailedTickets = async () => {
     const queryResult: FailedRetryableRes = (await querySubgraph(l2SubgraphEndpoint, FAILED_AUTOREDEEM_RETRYABLES_QUERY, {
-      //fromTimestamp: getPastTimestamp(STARTING_TIMESTAMP),
-      fromTimestamp: 1680373169,
+      fromTimestamp: getPastTimestamp(STARTING_TIMESTAMP),
+      //fromTimestamp: 1680373169,
     })) as FailedRetryableRes;
     const failedTickets: L2TicketReport[] = queryResult["retryables"];
   
@@ -250,10 +244,10 @@ export interface L1Retryables {
   export const checkFailedRetryablesLoop = async () => {
     console.log(`Starting retryables checker for chainId: ${l2ChainID}`);
     setChainParams();
-    while (true) {
-      checkFailedRetryables();
-      await wait(1000 * 60 * failedRetryablesDelayMinutes);
-    }
+    checkFailedRetryables();
+    await wait(1000 * 60);
+   
+   
   };
 
   
