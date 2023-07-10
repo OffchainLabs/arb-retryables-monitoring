@@ -189,7 +189,6 @@ const reportFailedTickets = async (failedTickets: L2TicketReport[]) => {
     GET_L1_TXS_QUERY,
     {
       l2TicketIDs: ticketIDs,
-      //ticketSender: process.env.FROM_CONTRACT_ADDRESS
     }
   )) as L1TxsRes
   const l1TXs: L1TicketReport[] = l1TXsResponse['retryables']!
