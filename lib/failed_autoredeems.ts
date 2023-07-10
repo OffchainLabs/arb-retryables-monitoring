@@ -74,6 +74,38 @@ export interface L1Retryables {
 }
 
 
+
+
+
+const arbLog = async() => {
+  let str = '🔵'
+  for (let i = 0; i < 25; i++) {
+    await wait(40)
+    if (i == 12) {
+      str = `🔵${'🔵'.repeat(i)}🔵`
+    } else {
+      str = `🔵${' '.repeat(i * 2)}🔵`
+    }
+    while (str.length < 60) {
+      str = ` ${str} `
+    }
+
+    console.log(str)
+  }
+
+  console.log(`Starting retryables checker for chainId: ${l2ChainID}`)
+  await wait(2000)
+
+  console.log('Lets')
+  await wait(1000)
+
+  console.log('Go ➡️')
+  await wait(1000)
+  console.log('...🚀')
+  await wait(1000)
+  console.log('')
+}
+
 const getTimeDifference = (timestampInSeconds: number) => {
   const now = new Date().getTime() / 1000;
   const difference = timestampInSeconds - now;
@@ -123,7 +155,7 @@ const getTimeDifference = (timestampInSeconds: number) => {
       return "-";
     }
     let msg = "\n*L1 TX is:* ";
-    return `${msg}<${ETHERSCAN_TX + l1Report.transactionHash}`;
+    return `${msg}${ETHERSCAN_TX + l1Report.transactionHash}`;
    
 
   };
@@ -184,31 +216,36 @@ const getTimeDifference = (timestampInSeconds: number) => {
     
   
     if (await formatInitiator(tokenDepositData, l1Report) !==""){
+   
       let reportStr = formatL1TX(l1Report);
+      let l1Tx = reportStr.slice(-66);
       let prefix;
       switch (t.status) {
       case "RedeemFailed":
-        prefix = "Redeem failed for the ticket!\n It will expire in";
-        console.log(prefix + `${getTimeDifference(+t.timeoutTimestamp)}`+ reportStr + `\nPlease visit ${RETRYABLE_DASHBOARD} to manually redeem the ticket!`);
+        
+        console.log("*************************************************************************************")
+        prefix = "Redeem failed for the retryable ticket! It will expire in";
+        console.log(prefix + `${getTimeDifference(+t.timeoutTimestamp)}`+ reportStr + `\nPlease visit ${RETRYABLE_DASHBOARD + l1Tx} to manually redeem the ticket!`);
         
         break;
       case "Expired":
-        prefix = "*Retryable ticket already expired!* 😞";
+        console.log("*************************************************************************************")
+        prefix = "Retryable ticket already expired!";
         console.log(prefix + reportStr);
         break;
       case "Created":
-        prefix = "*Retryable ticket hasn't been scheduled!*";
-        console.log(prefix + reportStr + `\nPlease visit ${RETRYABLE_DASHBOARD} to manually redeem the ticket!`);
+        console.log("*************************************************************************************")
+        prefix = "Retryable ticket hasn't been scheduled!";
+        console.log(prefix + reportStr + `\nPlease visit ${RETRYABLE_DASHBOARD + l1Tx} to manually redeem the ticket!`);
         break;
       default:
         prefix = "*Found retryable ticket in unrecognized state:*";
     }
-     
-      
-      console.log("-------------------------------------------------------------------------------")
+
     }
     
   }
+  console.log("*************************************************************************************")
   console.log("No other ticket is found!");
   
 };
@@ -242,7 +279,7 @@ const getTimeDifference = (timestampInSeconds: number) => {
 
 
   export const checkFailedRetryablesLoop = async () => {
-    console.log(`Starting retryables checker for chainId: ${l2ChainID}`);
+    await arbLog();
     setChainParams();
     checkFailedRetryables();
     await wait(1000 * 60);
