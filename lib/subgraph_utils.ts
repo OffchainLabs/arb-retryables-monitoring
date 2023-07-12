@@ -133,7 +133,6 @@ export const querySubgraph = async (
       }
     }
   }
-  console.log('no')
   return {}
 }
 
