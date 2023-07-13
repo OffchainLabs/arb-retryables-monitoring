@@ -18,9 +18,6 @@ require('dotenv').config()
 const l2ChainID = process.env.l2NetworkID
 const l1Provider = new providers.JsonRpcProvider(process.env.L1RPC)
 
-const STARTING_TIMESTAMP = 100 * 24 * 60 * 60 * 1000 // 14 days in ms
-const ETHERSCAN_TX = 'https://etherscan.io/tx/'
-const RETRYABLE_DASHBOARD = 'https://retryable-dashboard.arbitrum.io/tx/'
 let l1SubgraphEndpoint: string
 let l2SubgraphEndpoint: string
 
@@ -142,13 +139,13 @@ const formatL1TX = (l1Report: L1TicketReport | undefined) => {
     return '-'
   }
   let msg = '\nL1 TX is: '
-  return `${msg}${ETHERSCAN_TX + l1Report.transactionHash}`
+  return `${msg}${process.env.ETHERSCAN_TX + l1Report.transactionHash}`
 }
 
 const isMatchingSender = async (
   deposit: TokenDepositData | undefined,
   l1Report: L1TicketReport | undefined
-): Promise<boolean>  => {
+): Promise<boolean> => {
   if (deposit !== undefined) {
     const depositSenderFromGraph = deposit.sender
     const rec = await getL1TXRec(deposit.transactionHash)
@@ -213,7 +210,7 @@ const reportFailedTickets = async (failedTickets: L2TicketReport[]) => {
       deposit => deposit.l2TicketId === t.id
     )
 
-    if ((await isMatchingSender(tokenDepositData, l1Report))) {
+    if (await isMatchingSender(tokenDepositData, l1Report)) {
       let reportStr = formatL1TX(l1Report)
       let l1Tx = reportStr.slice(-66)
       let prefix
@@ -229,7 +226,7 @@ const reportFailedTickets = async (failedTickets: L2TicketReport[]) => {
               `${getTimeDifference(+t.timeoutTimestamp)}` +
               reportStr +
               `\nPlease visit ${
-                RETRYABLE_DASHBOARD + l1Tx
+                process.env.RETRYABLE_DASHBOARD + l1Tx
               } to manually redeem the ticket!`
           )
 
@@ -250,7 +247,7 @@ const reportFailedTickets = async (failedTickets: L2TicketReport[]) => {
             prefix +
               reportStr +
               `\nPlease visit ${
-                RETRYABLE_DASHBOARD + l1Tx
+                process.env.RETRYABLE_DASHBOARD + l1Tx
               } to manually redeem the ticket!`
           )
           break
@@ -270,8 +267,9 @@ const getFailedTickets = async () => {
     l2SubgraphEndpoint,
     FAILED_AUTOREDEEM_RETRYABLES_QUERY,
     {
-      fromTimestamp: getPastTimestamp(STARTING_TIMESTAMP),
-      //fromTimestamp: 1680373169,
+      fromTimestamp: getPastTimestamp(
+        parseInt(process.env.STARTING_TIMESTAMP!)
+      ),
     }
   )) as FailedRetryableRes
   const failedTickets: L2TicketReport[] = queryResult['retryables']
