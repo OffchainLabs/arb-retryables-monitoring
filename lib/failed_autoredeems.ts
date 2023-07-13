@@ -145,21 +145,21 @@ const formatL1TX = (l1Report: L1TicketReport | undefined) => {
   return `${msg}${ETHERSCAN_TX + l1Report.transactionHash}`
 }
 
-const formatInitiator = async (
+const isMatchingSender = async (
   deposit: TokenDepositData | undefined,
   l1Report: L1TicketReport | undefined
-): Promise<string> => {
+): Promise<boolean>  => {
   if (deposit !== undefined) {
     const depositSenderFromGraph = deposit.sender
     const rec = await getL1TXRec(deposit.transactionHash)
     const depositSenderFromRec = rec.from
     if (depositSenderFromGraph === process.env.SENDER_ADDRESS) {
-      return depositSenderFromGraph
+      return true
     }
     if (depositSenderFromRec === process.env.SENDER_ADDRESS) {
-      return depositSenderFromRec
+      return true
     } else {
-      return ''
+      return false
     }
   }
 
@@ -168,16 +168,16 @@ const formatInitiator = async (
     const rec = await getL1TXRec(l1Report.transactionHash)
     const retryableSenderFromRec = rec.from
     if (retryableSenderFromGraph === process.env.SENDER_ADDRESS) {
-      return retryableSenderFromGraph
+      return true
     }
     if (retryableSenderFromRec === process.env.SENDER_ADDRESS) {
-      return retryableSenderFromRec
+      return true
     } else {
-      return ''
+      return false
     }
   }
 
-  return ''
+  return false
 }
 
 const reportFailedTickets = async (failedTickets: L2TicketReport[]) => {
@@ -213,7 +213,7 @@ const reportFailedTickets = async (failedTickets: L2TicketReport[]) => {
       deposit => deposit.l2TicketId === t.id
     )
 
-    if ((await formatInitiator(tokenDepositData, l1Report)) !== '') {
+    if ((await isMatchingSender(tokenDepositData, l1Report))) {
       let reportStr = formatL1TX(l1Report)
       let l1Tx = reportStr.slice(-66)
       let prefix
