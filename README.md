@@ -21,6 +21,7 @@ From the root directory:
 ```bash
 yarn install
 ```
+
 ## Execution
 
 Based on your system's configuration, you may have tickets that are initiated either from an externally owned account (EOA) or a contract that generates retryables. To utilize the script, you simply need to provide the corresponding address as an environmental variable and execute the script, using the following command.

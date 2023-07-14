@@ -198,6 +198,7 @@ const reportFailedTickets = async (failedTickets: L2TicketReport[]) => {
   )) as L1DepositDataRes
   const depositsData: TokenDepositData[] = depositsDataResponse['deposits']
 
+  console.log(failedTickets.length)
   for (let i = 0; i < failedTickets.length; i++) {
     const t = failedTickets[i]
 

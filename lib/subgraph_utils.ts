@@ -65,29 +65,9 @@ export interface L1DepositDataRes {
   deposits: TokenDepositData[]
 }
 
-export const GET_L1_RETRYABLES_QUERY = `
-    query($fromTimestamp: BigInt!, $toTimestamp: BigInt!, $lastID: String) {
-        retryables(first: 200, where: {timestamp_gt: $fromTimestamp, timestamp_lt: $toTimestamp, id_gt: $lastID}) {
-          id
-          retryableTicketID
-          timestamp
-          transactionHash
-          destAddr
-        }
-    }
-`
-
 export interface L1RetryablesRes {
   retryables: L1Retryables[]
 }
-
-export const GET_L2_RETRYABLES_BY_TICKET_ID_QUERY = `
-    query($l2TicketIDs: [String!]!, $lastID: String) {
-      retryables(first: 200, where: {id_in: $l2TicketIDs, id_gt: $lastID}) {
-        id
-      }
-    }
-`
 
 export interface L2RetryablesId {
   id: string
