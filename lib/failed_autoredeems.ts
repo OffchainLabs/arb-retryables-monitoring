@@ -64,8 +64,6 @@ export interface L1Retryables {
   sender: string
 }
 
-requireEnvVariables(['L1RPC', 'SENDER_ADDRESS', 'STARTING_TIMESTAMP'])
-
 const getTimeDifference = (timestampInSeconds: number) => {
   const now = new Date().getTime() / 1000
   const difference = timestampInSeconds - now
@@ -265,6 +263,7 @@ const checkFailedRetryables = async () => {
 }
 
 export const checkFailedRetryablesLoop = async () => {
+  requireEnvVariables(['L1RPC', 'SENDER_ADDRESS', 'STARTING_TIMESTAMP'])
   await arbLog(l2ChainID)
   setChainParams()
   await checkFailedRetryables()
