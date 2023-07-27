@@ -9,7 +9,7 @@ import {
 ////// subgraph queries
 export const FAILED_AUTOREDEEM_RETRYABLES_QUERY = `
 query($fromTimestamp: BigInt!) {
-  retryables(where: {redeemedAtTimestamp: null, timeoutTimestamp_gt: $fromTimestamp}) {
+  retryables(where: {redeemedAtTimestamp: null, createdAtTimestamp_gte: $fromTimestamp}) {
     id
     retryTxHash
     createdAtTimestamp
@@ -113,9 +113,10 @@ export const querySubgraph = async (
 export const wait = (ms: number) => new Promise(r => setTimeout(r, ms))
 
 // Unix timestamp
-export const getPastTimestamp = (daysAgoInMs: number) => {
+export const getPastTimestamp = (daysAgo: number) => {
   const now = new Date().getTime()
-  return Math.floor((now - daysAgoInMs) / 1000)
+  const daysInMs = daysAgo * 24 * 60 * 60 * 1000 // Convert days to milliseconds
+  return Math.floor((now - daysInMs) / 1000)
 }
 
 export const timestampToDate = (timestampInSeconds: number) => {

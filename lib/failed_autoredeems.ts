@@ -8,6 +8,8 @@ import {
   FailedRetryableRes,
   L1DepositDataRes,
 } from './subgraph_utils'
+import { requireEnvVariables, arbLog } from './utils'
+
 import { providers } from 'ethers'
 import { TransactionReceipt } from '@ethersproject/providers'
 
@@ -18,8 +20,6 @@ const l1Provider = new providers.JsonRpcProvider(process.env.L1RPC)
 
 let l1SubgraphEndpoint: string
 let l2SubgraphEndpoint: string
-
-const wait = (ms: number) => new Promise(r => setTimeout(r, ms))
 
 export interface L2TicketReport {
   id: string
@@ -62,35 +62,6 @@ export interface L1Retryables {
   transactionHash: string
   destAddr: string
   sender: string
-}
-
-const arbLog = async () => {
-  let str = '🔵'
-  for (let i = 0; i < 25; i++) {
-    await wait(40)
-    if (i == 12) {
-      str = `🔵${'🔵'.repeat(i)}🔵`
-    } else {
-      str = `🔵${' '.repeat(i * 2)}🔵`
-    }
-    while (str.length < 60) {
-      str = ` ${str} `
-    }
-
-    console.log(str)
-  }
-
-  console.log(`Starting retryables checker for chainId: ${l2ChainID}`)
-  await wait(2000)
-
-  console.log('Lets')
-  await wait(1000)
-
-  console.log('Go ➡️')
-  await wait(1000)
-  console.log('...🚀')
-  await wait(1000)
-  console.log('')
 }
 
 const getTimeDifference = (timestampInSeconds: number) => {
@@ -265,9 +236,7 @@ const getFailedTickets = async () => {
     l2SubgraphEndpoint,
     FAILED_AUTOREDEEM_RETRYABLES_QUERY,
     {
-      fromTimestamp: getPastTimestamp(
-        parseInt(process.env.STARTING_TIMESTAMP!)
-      ),
+      fromTimestamp: getPastTimestamp(parseInt(process.env.DAYS_FROM!)),
     }
   )) as FailedRetryableRes
   const failedTickets: L2TicketReport[] = queryResult['retryables']
@@ -292,8 +261,8 @@ const checkFailedRetryables = async () => {
 }
 
 export const checkFailedRetryablesLoop = async () => {
-  await arbLog()
+  requireEnvVariables(['L1RPC', 'SENDER_ADDRESS', 'DAYS_FROM'])
+  await arbLog(l2ChainID)
   setChainParams()
-  checkFailedRetryables()
-  await wait(1000 * 60)
+  await checkFailedRetryables()
 }

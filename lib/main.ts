@@ -6,7 +6,7 @@ const main = async () => {
   // check action param
   switch (action) {
     case 'failed_autoredeems':
-      return checkFailedRetryablesLoop()
+      return await checkFailedRetryablesLoop()
     default:
       throw new Error('Not a right action value')
   }
