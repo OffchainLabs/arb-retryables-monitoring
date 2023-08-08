@@ -236,7 +236,7 @@ const getFailedTickets = async () => {
     l2SubgraphEndpoint,
     FAILED_AUTOREDEEM_RETRYABLES_QUERY,
     {
-      fromTimestamp: getPastTimestamp(parseInt(process.env.START_FROM_DAYS_AGO!)),
+      fromTimestamp: getPastTimestamp(parseInt(process.env.CREATED_SINCE_DAYS_AGO!)),
     }
   )) as FailedRetryableRes
   const failedTickets: L2TicketReport[] = queryResult['retryables']
@@ -261,7 +261,7 @@ const checkFailedRetryables = async () => {
 }
 
 export const checkFailedRetryablesLoop = async () => {
-  requireEnvVariables(['L1RPC', 'SENDER_ADDRESS', 'START_FROM_DAYS_AGO'])
+  requireEnvVariables(['L1RPC', 'SENDER_ADDRESS', 'CREATED_SINCE_DAYS_AGO'])
   await arbLog(l2ChainID)
   setChainParams()
   await checkFailedRetryables()

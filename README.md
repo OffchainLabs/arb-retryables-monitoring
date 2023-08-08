@@ -19,7 +19,7 @@ Set the values shown in .env-sample as environmental variables. To copy it into 
 cp .env-sample .env
 ```
 
-(you'll still need to edit some variables, i.e., `L1RPC`, `SENDER_ADDRESS`, and `START_FROM_DAYS_AGO`)
+(you'll still need to edit some variables, i.e., `L1RPC`, `SENDER_ADDRESS`, and `CREATED_SINCE_DAYS_AGO`)
 
 ## Installation
 
@@ -37,7 +37,7 @@ Based on your system's configuration, you may have tickets that are initiated ei
 yarn failed_autoredeems
 ```
 
-The output will include all the tickets that were initiated from the specified address and are past the given timestamp. Specifically, the script will provide the following information:
+The output will include all the tickets that were initiated from the specified address and generated `x` days in the past, where the value of `x` is defined as an environment variable. Specifically, the script will provide the following information:
 
 - All retryables that have failed to be automatically redeemed.
 - The current status of each ticket.
