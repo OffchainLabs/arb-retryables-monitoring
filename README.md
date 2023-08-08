@@ -8,8 +8,8 @@ Note that the tool relies on subgraphs, which index all the Arbitrum retryables 
 
 Install the following, if you don't have them already:
 
-- [Node.js] (https://nodejs.org/en)
-- [Yarn] (https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
+- [Node.js](https://nodejs.org/en)
+- [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
 
 ## Config Environment Variables
 
