@@ -15,7 +15,7 @@ import { TransactionReceipt } from '@ethersproject/providers'
 
 require('dotenv').config()
 
-const l2ChainID = process.env.l2NetworkID
+const l2ChainID = process.env.L2_NETWORK_ID
 const l1Provider = new providers.JsonRpcProvider(process.env.L1RPC)
 
 let l1SubgraphEndpoint: string
@@ -86,7 +86,7 @@ const getTimeDifference = (timestampInSeconds: number) => {
 
 const isExpired = (ticket: L2TicketReport) => {
   const now = Math.floor(new Date().getTime() / 1000) // epoch in seconds
-  return now > +ticket.timeoutTimestamp
+  return now > Number(ticket.timeoutTimestamp)
 }
 
 const setChainParams = () => {
@@ -236,7 +236,7 @@ const getFailedTickets = async () => {
     l2SubgraphEndpoint,
     FAILED_AUTOREDEEM_RETRYABLES_QUERY,
     {
-      fromTimestamp: getPastTimestamp(parseInt(process.env.DAYS_FROM!)),
+      fromTimestamp: getPastTimestamp(parseInt(process.env.CREATED_SINCE_DAYS_AGO!)),
     }
   )) as FailedRetryableRes
   const failedTickets: L2TicketReport[] = queryResult['retryables']
@@ -261,7 +261,7 @@ const checkFailedRetryables = async () => {
 }
 
 export const checkFailedRetryablesLoop = async () => {
-  requireEnvVariables(['L1RPC', 'SENDER_ADDRESS', 'DAYS_FROM'])
+  requireEnvVariables(['L1RPC', 'SENDER_ADDRESS', 'CREATED_SINCE_DAYS_AGO'])
   await arbLog(l2ChainID)
   setChainParams()
   await checkFailedRetryables()
