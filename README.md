@@ -1,6 +1,6 @@
 # Arb Retryables Monitoring Tool
 
-This tool enables you to track retryable tickets that were initiated from a _particular address_ after a _specific time_ but have failed to be automatically redeemed. If you want to learn more about retryables and their functioning, please see [here](https://developer.arbitrum.io/arbos/l1-to-l2-messaging).
+This tool enables you to track retryable tickets that were initiated from a _particular address_ after a _specific day_ but have failed to be automatically redeemed. If you want to learn more about retryables and their functioning, please see [here](https://developer.arbitrum.io/arbos/l1-to-l2-messaging).
 
 Note that the tool relies on subgraphs, which index all the Arbitrum retryables in real-time, to retrieve data for retryables on both L1 (Ethereum) and L2 (Arbitrum One). In rare cases, there might be issues with the graph, causing our L1 and/or L2 subgraph to pause and resulting in data lagging for several hours until the nodes are resynced and all blocks are processed. If this occurs, it may cause tickets to not be detected accurately.
 
