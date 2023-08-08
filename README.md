@@ -4,6 +4,13 @@ This tool enables you to track retryable tickets that were initiated from a _par
 
 Note that the tool relies on subgraphs, which index all the Arbitrum retryables in real-time, to retrieve data for retryables on both L1 (Ethereum) and L2 (Arbitrum One). In rare cases, there might be issues with the graph, causing our L1 and/or L2 subgraph to pause and resulting in data lagging for several hours until the nodes are resynced and all blocks are processed. If this occurs, it may cause tickets to not be detected accurately.
 
+## Prerequisites
+
+Install the following, if you don't have them already:
+
+- [Node.js] (https://nodejs.org/en)
+- [Yarn] (https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
+
 ## Config Environment Variables
 
 Set the values shown in .env-sample as environmental variables. To copy it into a .env file:
@@ -12,7 +19,7 @@ Set the values shown in .env-sample as environmental variables. To copy it into 
 cp .env-sample .env
 ```
 
-(you'll still need to edit some variables, i.e., `L1RPC`, `SENDER_ADDRESS`, and `STARTING_TIMESTAMP`)
+(you'll still need to edit some variables, i.e., `L1RPC`, `SENDER_ADDRESS`, and `START_FROM_DAYS_AGO`)
 
 ## Installation
 
