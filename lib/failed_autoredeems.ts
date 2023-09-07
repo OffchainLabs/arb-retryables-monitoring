@@ -120,7 +120,10 @@ const isMatchingSender = async (
     const rec = await getL1TXRec(deposit.transactionHash)
     const depositSenderFromRec = rec.from.toLowerCase()
 
-    if (depositSenderFromGraph == (process.env.SENDER_ADDRESS!).toLowerCase() || depositSenderFromRec == (process.env.SENDER_ADDRESS!).toLowerCase()) {
+    if (
+      depositSenderFromGraph == process.env.SENDER_ADDRESS!.toLowerCase() ||
+      depositSenderFromRec == process.env.SENDER_ADDRESS!.toLowerCase()
+    ) {
       return true
     }
   }
@@ -129,7 +132,10 @@ const isMatchingSender = async (
     const retryableSenderFromGraph = l1Report.sender.toLowerCase()
     const rec = await getL1TXRec(l1Report.transactionHash)
     const retryableSenderFromRec = rec.from.toLowerCase()
-    if (retryableSenderFromGraph === (process.env.SENDER_ADDRESS!).toLowerCase() || retryableSenderFromRec === (process.env.SENDER_ADDRESS!).toLowerCase()) {
+    if (
+      retryableSenderFromGraph === process.env.SENDER_ADDRESS!.toLowerCase() ||
+      retryableSenderFromRec === process.env.SENDER_ADDRESS!.toLowerCase()
+    ) {
       return true
     }
   }
@@ -227,7 +233,9 @@ const getFailedTickets = async () => {
     l2SubgraphEndpoint,
     FAILED_AUTOREDEEM_RETRYABLES_QUERY,
     {
-      fromTimestamp: getPastTimestamp(parseInt(process.env.CREATED_SINCE_DAYS_AGO!)),
+      fromTimestamp: getPastTimestamp(
+        parseInt(process.env.CREATED_SINCE_DAYS_AGO!)
+      ),
     }
   )) as FailedRetryableRes
   const failedTickets: L2TicketReport[] = queryResult['retryables']
@@ -257,5 +265,3 @@ export const checkFailedRetryablesLoop = async () => {
   setChainParams()
   await checkFailedRetryables()
 }
-
-
