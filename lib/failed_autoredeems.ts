@@ -116,30 +116,27 @@ const isMatchingSender = async (
   l1Report: L1TicketReport | undefined
 ): Promise<boolean> => {
   if (deposit !== undefined) {
-    const depositSenderFromGraph = deposit.sender
+    const depositSenderFromGraph = deposit.sender.toLowerCase()
     const rec = await getL1TXRec(deposit.transactionHash)
-    const depositSenderFromRec = rec.from
-    if (depositSenderFromGraph === process.env.SENDER_ADDRESS) {
+    const depositSenderFromRec = rec.from.toLowerCase()
+
+    if (
+      depositSenderFromGraph == process.env.SENDER_ADDRESS!.toLowerCase() ||
+      depositSenderFromRec == process.env.SENDER_ADDRESS!.toLowerCase()
+    ) {
       return true
-    }
-    if (depositSenderFromRec === process.env.SENDER_ADDRESS) {
-      return true
-    } else {
-      return false
     }
   }
 
   if (l1Report !== undefined) {
-    const retryableSenderFromGraph = l1Report.sender
+    const retryableSenderFromGraph = l1Report.sender.toLowerCase()
     const rec = await getL1TXRec(l1Report.transactionHash)
-    const retryableSenderFromRec = rec.from
-    if (retryableSenderFromGraph === process.env.SENDER_ADDRESS) {
+    const retryableSenderFromRec = rec.from.toLowerCase()
+    if (
+      retryableSenderFromGraph === process.env.SENDER_ADDRESS!.toLowerCase() ||
+      retryableSenderFromRec === process.env.SENDER_ADDRESS!.toLowerCase()
+    ) {
       return true
-    }
-    if (retryableSenderFromRec === process.env.SENDER_ADDRESS) {
-      return true
-    } else {
-      return false
     }
   }
 
@@ -236,7 +233,9 @@ const getFailedTickets = async () => {
     l2SubgraphEndpoint,
     FAILED_AUTOREDEEM_RETRYABLES_QUERY,
     {
-      fromTimestamp: getPastTimestamp(parseInt(process.env.CREATED_SINCE_DAYS_AGO!)),
+      fromTimestamp: getPastTimestamp(
+        parseInt(process.env.CREATED_SINCE_DAYS_AGO!)
+      ),
     }
   )) as FailedRetryableRes
   const failedTickets: L2TicketReport[] = queryResult['retryables']
